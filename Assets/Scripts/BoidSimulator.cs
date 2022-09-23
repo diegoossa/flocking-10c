@@ -29,6 +29,7 @@ public class BoidSimulator
 	private Team[] m_teams;
 	private Vector3 m_halfWorldSize;
 
+	
 	public void Reset(Vector3 size, uint boidCount, Team[] teams) 
 	{
 		m_halfWorldSize = size * .5f;

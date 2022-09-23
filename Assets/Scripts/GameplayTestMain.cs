@@ -94,6 +94,7 @@ public class GameplayTestMain : MonoBehaviour
 
 	private void UpdateGameObjects()
 	{
+		//Debug.Log(m_boidSimulator.Boids.Length);
 		for (int boidIndex = 0; boidIndex < m_boidSimulator.Boids.Length; ++boidIndex)
 		{
 			var boid = m_boidSimulator.Boids[boidIndex];
