@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 
-public class BoidSimulator
+public class BoidSimulatorOld
 {
 	public const float INITIAL_VELOCITY = 2.0f;
 	public const float MATCH_VELOCITY_RATE = 1.0f;

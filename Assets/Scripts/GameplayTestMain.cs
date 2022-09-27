@@ -14,24 +14,24 @@ public class GameplayTestMain : MonoBehaviour
 		4096,
 	};
 
-	private static readonly BoidSimulator.Team[] s_teams = new BoidSimulator.Team[]
+	private static readonly BoidSimulatorOld.Team[] s_teams = new BoidSimulatorOld.Team[]
 	{
 		// Red
-		new BoidSimulator.Team
+		new BoidSimulatorOld.Team
 		{
 			Acceleration = 4,
 			Drag = .02f,
 		},
 
 		// Green
-		new BoidSimulator.Team
+		new BoidSimulatorOld.Team
 		{
 			Acceleration = 4,
 			Drag = .03f,
 		},
 
 		// Blue
-		new BoidSimulator.Team
+		new BoidSimulatorOld.Team
 		{
 			Acceleration = 11,
 			Drag = .04f,
@@ -41,7 +41,7 @@ public class GameplayTestMain : MonoBehaviour
 	[SerializeField]
 	private GameObject[] m_agentPrefabs;
 
-	private BoidSimulator m_boidSimulator = new BoidSimulator();
+	private BoidSimulatorOld m_boidSimulator = new BoidSimulatorOld();
 	private List<GameObject> m_boidGameObjects = new List<GameObject>();
 
 	private void Start() 
