@@ -17,6 +17,7 @@ public partial struct SimulateBoids : ISystem
             .WithAll<Boid, LocalToWorld>();
         _boidQuery = state.GetEntityQuery(queryBuilder);
         state.RequireForUpdate(_boidQuery);
+        state.RequireForUpdate<BoidSimulator>();
     }
 
     public void OnDestroy(ref SystemState state)
@@ -26,9 +27,7 @@ public partial struct SimulateBoids : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        if(_boidQuery.CalculateEntityCount() == 0)
-            return;
-
+        
         var boidsL2W = _boidQuery.ToComponentDataArray<LocalToWorld>(Allocator.TempJob);
         var boidEntities = _boidQuery.ToEntityArray(Allocator.TempJob);
 

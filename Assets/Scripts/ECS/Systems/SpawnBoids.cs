@@ -11,6 +11,7 @@ using Random = Unity.Mathematics.Random;
 public partial struct SpawnBoids : ISystem
 {
     private static readonly uint[] BoidCounts = {64, 256, 1024, 4096};
+    private uint _currentCount;
 
     public void OnCreate(ref SystemState state)
     {
@@ -29,7 +30,12 @@ public partial struct SpawnBoids : ISystem
         {
             if (Input.GetKeyDown(KeyCode.Alpha1 + i))
             {
-                ResetSetup(ref state, BoidCounts[i]);
+                // Exclude if it is the same simulation
+                if (_currentCount == BoidCounts[i])
+                    return;
+                
+                _currentCount = BoidCounts[i];
+                ResetSetup(ref state, _currentCount);
                 break;
             }
         }
