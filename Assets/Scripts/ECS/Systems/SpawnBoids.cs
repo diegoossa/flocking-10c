@@ -1,63 +1,64 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
+using Unity.Transforms;
+using static Unity.Entities.SystemAPI;
+using Random = Unity.Mathematics.Random;
 
 [BurstCompile]
-public partial class SpawnBoids : SystemBase
+public partial struct SpawnBoids : ISystem
 {
     private static readonly uint[] BoidCounts = {64, 256, 1024, 4096};
-    
-    protected override void OnCreate()
+
+    public void OnCreate(ref SystemState state)
     {
-        base.OnCreate();
-        RequireSingletonForUpdate<BoidSpawner>();
-        RequireSingletonForUpdate<BoidSimulator>();
+        state.RequireForUpdate<BoidSpawner>();
     }
 
-    protected override void OnUpdate()
+    public void OnDestroy(ref SystemState state)
+    {
+    }
+
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
     {
         // Reset setup when number keys are pressed
         for (var i = 0; i < BoidCounts.Length; ++i)
         {
             if (Input.GetKeyDown(KeyCode.Alpha1 + i))
             {
-                ResetSetup(BoidCounts[i]);
+                ResetSetup(ref state, BoidCounts[i]);
                 break;
             }
         }
     }
 
-    private void ResetSetup(uint boidCount)
+    [BurstCompile]
+    private void ResetSetup(ref SystemState state, uint boidCount)
     {
-        var boidSimulator = GetSingleton<BoidSimulator>();
+        // var boidSimulator = GetSingleton<BoidSimulator>();
         var commandBuffer = new EntityCommandBuffer(Allocator.TempJob);
         var commandBufferParallelWriter = commandBuffer.AsParallelWriter();
 
         // Destroy all boid entities
-        var jobHandle = new DestroyBoidsJob
+        var destroyBoidsJob = new DestroyBoidsJob
         {
             EntityCommandBuffer = commandBufferParallelWriter
-        }.ScheduleParallel();
-
-        // Reset boid simulator
-        boidSimulator.Reset();
+        };
+        var jobHandle = destroyBoidsJob.ScheduleParallel(state.Dependency);
 
         // Create entities for the boids
-        jobHandle = Entities
-            .ForEach((int entityInQueryIndex, in DynamicBuffer<BoidAgentData> boidAgentBuffer, in BoidSpawner spawner) =>
-                {
-                    for (var i = 0; i < boidCount; i++)
-                    {
-                        commandBufferParallelWriter.Instantiate(
-                            entityInQueryIndex,
-                            boidAgentBuffer[i % boidAgentBuffer.Length].BoidAgentEntity);
-                    }
-                }
-            ).Schedule(jobHandle);
+        var createBoidsJob = new CreateBoidsJob
+        {
+            EntityCommandBuffer = commandBufferParallelWriter,
+            BoidCount = boidCount
+        };
+        jobHandle = createBoidsJob.ScheduleParallel(jobHandle);
 
         jobHandle.Complete();
-        commandBuffer.Playback(EntityManager);
+        commandBuffer.Playback(state.EntityManager);
         commandBuffer.Dispose();
     }
 }
@@ -70,8 +71,66 @@ public partial struct DestroyBoidsJob : IJobEntity
 {
     public EntityCommandBuffer.ParallelWriter EntityCommandBuffer;
 
-    private void Execute([EntityInQueryIndex] int index, in Entity entity, in Boid boid)
+    private void Execute([EntityInQueryIndex] int index, in BoidAspect boid)
     {
-        EntityCommandBuffer.DestroyEntity(index, entity);
+        EntityCommandBuffer.DestroyEntity(index, boid.Self);
+    }
+}
+
+/// <summary>
+/// Job to create new boids
+/// </summary>
+[BurstCompile]
+public partial struct CreateBoidsJob : IJobEntity
+{
+    public EntityCommandBuffer.ParallelWriter EntityCommandBuffer;
+    public uint BoidCount;
+
+    private void Execute([EntityInQueryIndex] int index, in BoidSpawnerAspect boidSpawner)
+    {
+        // Decide world size based on boid count and density
+        var worldSize =
+            (int) math.ceil(math.pow(BoidCount, 1f / 3) * boidSpawner.BoidSpawner.BoidDensity /
+                            boidSpawner.BoidSpawner.RoundWorldSizeToMultiplesOf) *
+            boidSpawner.BoidSpawner.RoundWorldSizeToMultiplesOf;
+        
+        var random = new Random((uint) index + 1);
+        
+        // Initial State for the Boids
+        var halfSpawnRange = new float3(worldSize * 0.5f - 3f);
+
+        for (var i = 0; i < BoidCount; i++)
+        {
+            // Spawn random boids
+            var randomIndex = random.NextInt(0, boidSpawner.BoidAgentBuffer.Length);
+            var boid = EntityCommandBuffer.Instantiate(index, boidSpawner.BoidAgentBuffer[randomIndex].BoidAgentEntity);
+            EntityCommandBuffer.AddComponent(index, boid, new Team
+            {
+                Acceleration = boidSpawner.BoidAgentBuffer[randomIndex].Acceleration, 
+                Drag = boidSpawner.BoidAgentBuffer[randomIndex].Drag
+            });
+            EntityCommandBuffer.SetComponent(index, boid, new Velocity
+            {
+                Value = RandomUnitFloat3(ref random) * boidSpawner.BoidSpawner.InitialVelocity
+            });
+            var position = new float3(
+                random.NextFloat(-halfSpawnRange.x, halfSpawnRange.x),
+                random.NextFloat(-halfSpawnRange.y, halfSpawnRange.y),
+                random.NextFloat(-halfSpawnRange.z, halfSpawnRange.z));
+            EntityCommandBuffer.SetComponent(index, boid, new LocalToWorldTransform{ Value = UniformScaleTransform.FromPosition(position)});
+        }
+    }
+    
+    /// <summary>
+    /// Random Unit float3
+    /// </summary>
+    /// <param name="random">Random ref</param>
+    /// <returns>Random unit float3</returns>
+    private static float3 RandomUnitFloat3(ref Random random)
+    {
+        var a = random.NextFloat(0, 2f * math.PI);
+        var z = random.NextInt(-1, 1);
+        var h = math.sqrt(1f - z * z);
+        return new float3(h * math.cos(a), h * math.sin(a), z);
     }
 }

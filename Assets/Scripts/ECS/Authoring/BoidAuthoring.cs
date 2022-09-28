@@ -1,14 +1,16 @@
 ﻿using Unity.Entities;
 using UnityEngine;
 
-namespace ECS.Authoring
+public class BoidAuthoring : MonoBehaviour
 {
-    public class BoidAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+}
+
+public class BoidAuthoringBaker : Baker<BoidAuthoring>
+{
+    public override void Bake(BoidAuthoring authoring)
     {
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
-        {
-            dstManager.AddComponent<Boid>(entity);
-            dstManager.AddComponent<Velocity>(entity);
-        }
+        AddComponent<Boid>();
+        AddComponent<Velocity>();
+        AddBuffer<Neighbours>();
     }
 }

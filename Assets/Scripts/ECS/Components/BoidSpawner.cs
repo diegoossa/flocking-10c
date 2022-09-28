@@ -2,7 +2,9 @@ using Unity.Entities;
 
 public struct BoidSpawner : IComponentData
 {
-    
+    public float InitialVelocity;
+    public float BoidDensity;
+    public int RoundWorldSizeToMultiplesOf;
 }
 
 [InternalBufferCapacity(3)]

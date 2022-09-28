@@ -1,23 +1,30 @@
 ﻿using Unity.Entities;
 using UnityEngine;
 
-namespace ECS.Authoring
+public class BoidSimulatorAuthoring : MonoBehaviour
 {
-    public class BoidSimulatorAuthoring : MonoBehaviour, IConvertGameObjectToEntity
+    [Header("Simulation Settings")] 
+    public float initialVelocity = 2.0f;
+    public float matchVelocityRate = 1.0f;
+    public float avoidanceRange = 2.0f;
+    public float avoidanceRate = 5.0f;
+    public float coherenceRate = 2.0f;
+    public float viewRange = 3.0f;
+}
+
+public class BoidSimulatorAuthoringBaker : Baker<BoidSimulatorAuthoring>
+{
+    public override void Bake(BoidSimulatorAuthoring authoring)
     {
-        [Header("Simulation Settings")] [SerializeField]
-        private float boidDensity = 4f;
-
-        [SerializeField] private int roundWorldSizeToMultiplesOf = 5;
-
-        public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+        AddComponent(new BoidSimulator
         {
-            dstManager.AddComponent<BoidSimulator>(entity);
-            dstManager.AddComponentData(entity, new SimulationSettings
-            {
-                BoidDensity = boidDensity,
-                RoundWorldSizeToMultiplesOf = roundWorldSizeToMultiplesOf
-            });
-        }
+            InitialVelocity = authoring.initialVelocity,
+            MatchVelocityRate = authoring.matchVelocityRate,
+            AvoidanceRange = authoring.avoidanceRange,
+            AvoidanceRate = authoring.avoidanceRate,
+            CoherenceRate = authoring.coherenceRate,
+            ViewRange = authoring.viewRange
+        });
+        
     }
 }

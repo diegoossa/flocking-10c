@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using Unity.Entities;
 using UnityEngine;
 
@@ -11,30 +10,36 @@ public struct BoidAgentSettings
     public float drag;
 }
 
-public class BoidSpawnerAuthoring : MonoBehaviour, IConvertGameObjectToEntity, IDeclareReferencedPrefabs
+public class BoidSpawnerAuthoring : MonoBehaviour
 {
+    [Header("Spawner Settings")] 
+    public float initialVelocity = 2.0f;
+    public float boidDensity = 4.0f;
+    public int roundWorldSizeToMultiplesOf = 5;
+    
+    [Header("Boid Agents")]
     public BoidAgentSettings[] boidAgents;
+}
 
-    public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem)
+public class BoidSpawnerAuthoringBaker : Baker<BoidSpawnerAuthoring>
+{
+    public override void Bake(BoidSpawnerAuthoring authoring)
     {
-        dstManager.AddComponent<BoidSpawner>(entity);
-        var agentBuffer = dstManager.AddBuffer<BoidAgentData>(entity);
-        foreach (var boidAgent in boidAgents)
+        AddComponent(new BoidSpawner
+        {
+            InitialVelocity = authoring.initialVelocity,
+            BoidDensity = authoring.boidDensity,
+            RoundWorldSizeToMultiplesOf = authoring.roundWorldSizeToMultiplesOf
+        });
+        var agentBuffer = AddBuffer<BoidAgentData>();
+        foreach (var boidAgent in authoring.boidAgents)
         {
             agentBuffer.Add(new BoidAgentData
             {
-                BoidAgentEntity = conversionSystem.GetPrimaryEntity(boidAgent.prefab),
+                BoidAgentEntity = GetEntity(boidAgent.prefab),
                 Acceleration = boidAgent.acceleration, 
                 Drag = boidAgent.drag
             });
-        }
-    }
-
-    public void DeclareReferencedPrefabs(List<GameObject> referencedPrefabs)
-    {
-        foreach (var boidAgent in boidAgents)
-        {
-            referencedPrefabs.Add(boidAgent.prefab);
         }
     }
 }
