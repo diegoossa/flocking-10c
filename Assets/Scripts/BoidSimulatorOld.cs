@@ -68,7 +68,7 @@ public class BoidSimulatorOld
 
 			// Acceleration and drag
 			Vector3 velocity = boid.Velocity;
-			velocity += velocity.normalized * m_teams[team].Acceleration * dt;
+			velocity += velocity.normalized * (m_teams[team].Acceleration * dt);
 			velocity *= 1.0f - 30.0f * m_teams[team].Drag * dt;
 
 			updatedVelocities[boidIndex] = velocity;

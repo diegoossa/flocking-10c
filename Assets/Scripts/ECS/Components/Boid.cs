@@ -1,12 +1,13 @@
 using Unity.Entities;
 using Unity.Mathematics;
 
-public struct Boid : IComponentData { }
-
-public struct Velocity : IComponentData
+public struct Boid : IComponentData
 {
-    public float3 Value;
+    public int TeamId;
+    public float3 Velocity;
+    public float3 Position;
 }
+
 
 public struct Team : IComponentData
 {
