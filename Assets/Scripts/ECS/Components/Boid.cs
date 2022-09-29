@@ -8,7 +8,6 @@ public struct Boid : IComponentData
     public float3 Position;
 }
 
-
 public struct Team : IComponentData
 {
     public float Acceleration;
@@ -17,5 +16,5 @@ public struct Team : IComponentData
 
 public struct Neighbours : IBufferElementData
 {
-    public Entity Neighbour;
+    public Entity Entity;
 }

@@ -12,7 +12,7 @@ public partial struct FindNeighbours : ISystem
     
     public void OnCreate(ref SystemState state)
     {
-        using var queryBuilder = new EntityQueryBuilder(Allocator.Temp)
+        using var queryBuilder = new EntityQueryBuilder(Allocator.TempJob)
             .WithAll<Boid, LocalToWorldTransform>();
         _boidQuery = state.GetEntityQuery(queryBuilder);
         state.RequireForUpdate(_boidQuery);
@@ -36,6 +36,8 @@ public partial struct FindNeighbours : ISystem
         }.ScheduleParallel(_boidQuery, state.Dependency);
         
         state.CompleteDependency();
+        boidsLocalToWorld.Dispose();
+        boidEntities.Dispose();
     }
 }
 
@@ -44,7 +46,6 @@ public partial struct FindNeighboursJob : IJobEntity
 {
     [ReadOnly] [NativeDisableParallelForRestriction]
     public NativeArray<LocalToWorldTransform> BoidsLocalToWorldTransforms;
-
     [ReadOnly] [NativeDisableParallelForRestriction]
     public NativeArray<Entity> BoidEntities;
     public float Radius;
@@ -54,11 +55,10 @@ public partial struct FindNeighboursJob : IJobEntity
         neighbours.Clear();
         for (var i = 0; i < BoidEntities.Length; i++)
         {
-            var distance = math.distance(BoidsLocalToWorldTransforms[i].Value.Position,
-                localToWorldTransform.Value.Position);
+            var distance = math.distance(BoidsLocalToWorldTransforms[i].Value.Position, localToWorldTransform.Value.Position);
             if (distance < Radius && distance > 0)
             {
-                neighbours.Add(new Neighbours {Neighbour = BoidEntities[i]});
+                neighbours.Add(new Neighbours {Entity = BoidEntities[i]});
             }
         }
     }
