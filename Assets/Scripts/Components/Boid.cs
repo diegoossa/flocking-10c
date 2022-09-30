@@ -17,4 +17,7 @@ public struct Team : IComponentData
 public struct Neighbours : IBufferElementData
 {
     public Entity Entity;
+    public float3 Velocity;
+    public float3 Position;
+    public int TeamId;
 }

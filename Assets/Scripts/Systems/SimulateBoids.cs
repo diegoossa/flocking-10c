@@ -1,10 +1,8 @@
 using Unity.Burst;
 using Unity.Collections;
-using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine.UIElements;
 using static Unity.Entities.SystemAPI;
 
 [RequireMatchingQueriesForUpdate]
@@ -13,7 +11,6 @@ using static Unity.Entities.SystemAPI;
 public partial struct SimulateBoids : ISystem
 {
     private EntityQuery _boidQuery;
-    private ComponentLookup<Boid> _boidLookup;
 
     [BurstCompile]
     public void OnCreate(ref SystemState state)
@@ -24,8 +21,6 @@ public partial struct SimulateBoids : ISystem
         state.RequireForUpdate(_boidQuery);
         state.RequireForUpdate<WorldSettings>();
         state.RequireForUpdate<BoidSimulator>();
-
-        _boidLookup = state.GetComponentLookup<Boid>(true);
     }
 
     public void OnDestroy(ref SystemState state)
@@ -35,8 +30,6 @@ public partial struct SimulateBoids : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        _boidLookup.Update(ref state);
-
         var worldSettings = GetSingleton<WorldSettings>();
         var boidSimulation = GetSingleton<BoidSimulator>();
 
@@ -48,36 +41,32 @@ public partial struct SimulateBoids : ISystem
             ViewRange = boidSimulation.ViewRange,
             DeltaTime = deltaTime
         }.ScheduleParallel(_boidQuery, state.Dependency);
-        
+
         jobHandle = new MatchVelocityJob
         {
             MatchVelocityRate = boidSimulation.MatchVelocityRate,
             DeltaTime = deltaTime,
-            BoidLookup = _boidLookup
         }.ScheduleParallel(_boidQuery, jobHandle);
-        
+
         jobHandle = new UpdateCoherenceJob
         {
             CoherenceRate = boidSimulation.CoherenceRate,
             DeltaTime = deltaTime,
-            BoidLookup = _boidLookup
         }.ScheduleParallel(_boidQuery, jobHandle);
-        
+
         jobHandle = new AvoidOthersJob
         {
             AvoidanceRange = boidSimulation.AvoidanceRange,
             AvoidanceRate = boidSimulation.AvoidanceRate,
             DeltaTime = deltaTime,
-            BoidLookup = _boidLookup
         }.ScheduleParallel(_boidQuery, jobHandle);
 
         jobHandle = new UpdateBoidDataJob
         {
             DeltaTime = deltaTime
         }.ScheduleParallel(_boidQuery, jobHandle);
-        
-        jobHandle = new MoveBoidsJob().ScheduleParallel(_boidQuery, jobHandle);
 
+        jobHandle = new MoveBoidsJob().ScheduleParallel(_boidQuery, jobHandle);
         jobHandle.Complete();
     }
 }
@@ -108,26 +97,27 @@ public partial struct MatchVelocityJob : IJobEntity
     public float MatchVelocityRate;
     public float DeltaTime;
 
-    [NativeDisableContainerSafetyRestriction] [ReadOnly]
-    public ComponentLookup<Boid> BoidLookup;
-
     private void Execute(ref BoidAspect boid)
     {
-        if (boid.Neighbours.Length > 0)
-        {
-            var velocity = float3.zero;
-            for (var i = 0; i < boid.Neighbours.Length; ++i)
-            {
-                var neighbourBoid = BoidLookup[boid.Neighbours[i].Entity];
-                if (neighbourBoid.TeamId == boid.TeamId)
-                {
-                    velocity += neighbourBoid.Velocity;
-                }
-            }
+        if (boid.Neighbours.Length <= 0)
+            return;
 
-            velocity /= boid.Neighbours.Length;
-            boid.Velocity += (velocity - boid.Velocity) * MatchVelocityRate * DeltaTime;
+        var velocity = float3.zero;
+        var teamNeighbours = 0;
+        for (var i = 0; i < boid.Neighbours.Length; ++i)
+        {
+            if (boid.Neighbours[i].TeamId == boid.TeamId)
+            {
+                velocity += boid.Neighbours[i].Velocity;
+                teamNeighbours++;
+            }
         }
+
+        if (teamNeighbours == 0)
+            return;
+
+        velocity /= teamNeighbours;
+        boid.Velocity += (velocity - boid.Velocity) * (MatchVelocityRate * DeltaTime);
     }
 }
 
@@ -137,31 +127,27 @@ public partial struct UpdateCoherenceJob : IJobEntity
     public float CoherenceRate;
     public float DeltaTime;
 
-    [NativeDisableContainerSafetyRestriction] [ReadOnly]
-    public ComponentLookup<Boid> BoidLookup;
-
     private void Execute(ref BoidAspect boid)
     {
-        if (boid.Neighbours.Length > 0)
-        {
-            if (BoidLookup.TryGetComponent(boid.Neighbours[0].Entity, out var firstNeighbour))
-            {
-                var center = firstNeighbour.Position;
-                for (var i = 1; i < boid.Neighbours.Length; ++i)
-                {
-                    if (BoidLookup.TryGetComponent(boid.Neighbours[i].Entity, out var neighbourBoid))
-                    {
-                        if (neighbourBoid.TeamId == boid.TeamId)
-                        {
-                            center += neighbourBoid.Position;
-                        }
-                    }
-                }
+        if (boid.Neighbours.Length <= 0)
+            return;
 
-                center *= 1.0f / boid.Neighbours.Length;
-                boid.Velocity += (center - boid.Transform.Position) * CoherenceRate * DeltaTime;
+        var center = float3.zero;
+        var teamNeighbours = 0;
+        for (var i = 0; i < boid.Neighbours.Length; ++i)
+        {
+            if (boid.Neighbours[i].TeamId == boid.TeamId)
+            {
+                center += boid.Neighbours[i].Position;
+                teamNeighbours++;
             }
         }
+
+        if (teamNeighbours == 0)
+            return;
+
+        center *= 1.0f / teamNeighbours;
+        boid.Velocity += (center - boid.Position) * CoherenceRate * DeltaTime;
     }
 }
 
@@ -172,31 +158,24 @@ public partial struct AvoidOthersJob : IJobEntity
     public float AvoidanceRate;
     public float DeltaTime;
 
-    [NativeDisableContainerSafetyRestriction] [ReadOnly]
-    public ComponentLookup<Boid> BoidLookup;
-
     private void Execute(ref BoidAspect boid)
     {
-        if (boid.Neighbours.Length > 0)
+        if (boid.Neighbours.Length <= 0) 
+            return;
+        
+        var myPosition = boid.Position;
+        var minDistSqr = AvoidanceRange * AvoidanceRange;
+        var step = float3.zero;
+        for (var i = 0; i < boid.Neighbours.Length; ++i)
         {
-            var myPosition = boid.Transform.Position;
-            var minDistSqr = AvoidanceRange * AvoidanceRange;
-            var step = float3.zero;
-            for (var i = 0; i < boid.Neighbours.Length; ++i)
+            var delta = myPosition - boid.Neighbours[i].Position;
+            var deltaSqr = math.lengthsq(delta);
+            if (deltaSqr > 0 && deltaSqr < minDistSqr)
             {
-                if (BoidLookup.TryGetComponent(boid.Neighbours[i].Entity, out var neighbour))
-                {
-                    var delta = myPosition - neighbour.Position;
-                    var deltaSqr = math.lengthsq(delta);
-                    if (deltaSqr > 0 && deltaSqr < minDistSqr)
-                    {
-                        step += delta / math.sqrt(deltaSqr);
-                    }
-                }
+                step += delta / math.sqrt(deltaSqr);
             }
-
-            boid.Velocity += step * AvoidanceRate * DeltaTime;
         }
+        boid.Velocity += step * (AvoidanceRate * DeltaTime);
     }
 }
 

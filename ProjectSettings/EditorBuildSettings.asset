@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/OptimizedBoids.unity
+    guid: c4912f4adfee40c44941339d45edd7ce
   m_configObjects: {}

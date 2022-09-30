@@ -13,7 +13,7 @@ public partial struct FindNeighbours : ISystem
     public void OnCreate(ref SystemState state)
     {
         using var queryBuilder = new EntityQueryBuilder(Allocator.TempJob)
-            .WithAll<Boid, LocalToWorldTransform>();
+            .WithAll<Boid>();
         _boidQuery = state.GetEntityQuery(queryBuilder);
         state.RequireForUpdate(_boidQuery);
     }
@@ -25,18 +25,18 @@ public partial struct FindNeighbours : ISystem
     public void OnUpdate(ref SystemState state)
     {
         var boidSimulation = SystemAPI.GetSingleton<BoidSimulator>();
-        var boidsLocalToWorld = _boidQuery.ToComponentDataArray<LocalToWorldTransform>(Allocator.TempJob);
+        var boids = _boidQuery.ToComponentDataArray<Boid>(Allocator.TempJob);
         var boidEntities = _boidQuery.ToEntityArray(Allocator.TempJob);
         
         new FindNeighboursJob
         {
-            BoidsLocalToWorldTransforms = boidsLocalToWorld,
+            Boids = boids,
             BoidEntities = boidEntities,
             Radius = boidSimulation.ViewRange
         }.ScheduleParallel(_boidQuery, state.Dependency);
         
         state.CompleteDependency();
-        boidsLocalToWorld.Dispose();
+        boids.Dispose();
         boidEntities.Dispose();
     }
 }
@@ -45,7 +45,7 @@ public partial struct FindNeighbours : ISystem
 public partial struct FindNeighboursJob : IJobEntity
 {
     [ReadOnly] [NativeDisableParallelForRestriction]
-    public NativeArray<LocalToWorldTransform> BoidsLocalToWorldTransforms;
+    public NativeArray<Boid> Boids;
     [ReadOnly] [NativeDisableParallelForRestriction]
     public NativeArray<Entity> BoidEntities;
     public float Radius;
@@ -55,10 +55,16 @@ public partial struct FindNeighboursJob : IJobEntity
         neighbours.Clear();
         for (var i = 0; i < BoidEntities.Length; i++)
         {
-            var distance = math.distance(BoidsLocalToWorldTransforms[i].Value.Position, localToWorldTransform.Value.Position);
+            var distance = math.distance(Boids[i].Position, localToWorldTransform.Value.Position);
             if (distance < Radius && distance > 0)
             {
-                neighbours.Add(new Neighbours {Entity = BoidEntities[i]});
+                neighbours.Add(new Neighbours
+                {
+                    Entity = BoidEntities[i], 
+                    Position = Boids[i].Position, 
+                    Velocity = Boids[i].Velocity,
+                    TeamId = Boids[i].TeamId
+                });
             }
         }
     }
