@@ -11,17 +11,11 @@ using static Unity.Entities.SystemAPI;
 [UpdateAfter(typeof(FindNeighbours))]
 public partial struct SimulateBoids : ISystem
 {
-    // private EntityQuery _boidQuery;
-
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        // using var queryBuilder = new EntityQueryBuilder(Allocator.Temp)
-        //     .WithAll<Boid, LocalToWorldTransform>();
-        // _boidQuery = state.GetEntityQuery(queryBuilder);
-        // state.RequireForUpdate(_boidQuery);
         state.RequireForUpdate<WorldSettings>();
-        state.RequireForUpdate<BoidSimulator>();
+        state.RequireForUpdate<BoidSimulionSettings>();
     }
 
     public void OnDestroy(ref SystemState state)
@@ -32,33 +26,33 @@ public partial struct SimulateBoids : ISystem
     public void OnUpdate(ref SystemState state)
     {
         var worldSettings = GetSingleton<WorldSettings>();
-        var boidSimulation = GetSingleton<BoidSimulator>();
+        var simulationSettings = GetSingleton<BoidSimulionSettings>();
 
         var deltaTime = SystemAPI.Time.DeltaTime;
 
         var jobHandle = new AvoidInsideBoundsOfCubeJob
         {
             HalfWorldSize = worldSettings.HalfWorldSize,
-            ViewRange = boidSimulation.ViewRange,
+            ViewRange = simulationSettings.ViewRange,
             DeltaTime = deltaTime
         }.ScheduleParallel(state.Dependency);
 
         jobHandle = new MatchVelocityJob
         {
-            MatchVelocityRate = boidSimulation.MatchVelocityRate,
+            MatchVelocityRate = simulationSettings.MatchVelocityRate,
             DeltaTime = deltaTime,
         }.ScheduleParallel(jobHandle);
 
         jobHandle = new UpdateCoherenceJob
         {
-            CoherenceRate = boidSimulation.CoherenceRate,
+            CoherenceRate = simulationSettings.CoherenceRate,
             DeltaTime = deltaTime,
         }.ScheduleParallel(jobHandle);
 
         jobHandle = new AvoidOthersJob
         {
-            AvoidanceRange = boidSimulation.AvoidanceRange,
-            AvoidanceRate = boidSimulation.AvoidanceRate,
+            AvoidanceRange = simulationSettings.AvoidanceRange,
+            AvoidanceRate = simulationSettings.AvoidanceRate,
             DeltaTime = deltaTime,
         }.ScheduleParallel(jobHandle);
 

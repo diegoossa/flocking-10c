@@ -15,7 +15,7 @@ public class BoidSimulatorAuthoringBaker : Baker<BoidSimulatorAuthoring>
 {
     public override void Bake(BoidSimulatorAuthoring authoring)
     {
-        AddComponent(new BoidSimulator
+        AddComponent(new BoidSimulionSettings
         {
             MatchVelocityRate = authoring.matchVelocityRate,
             AvoidanceRange = authoring.avoidanceRange,

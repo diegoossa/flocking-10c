@@ -23,14 +23,13 @@ public partial struct FindNeighbours : ISystem
 
     public void OnUpdate(ref SystemState state)
     {
-        var boidSimulation = SystemAPI.GetSingleton<BoidSimulator>();
+        var boidSimulation = SystemAPI.GetSingleton<BoidSimulionSettings>();
         var boids = _boidQuery.ToComponentDataArray<Boid>(Allocator.TempJob);
         var boidEntities = _boidQuery.ToEntityArray(Allocator.TempJob);
         
         new FindNeighboursJob
         {
             Boids = boids,
-            BoidEntities = boidEntities,
             Radius = boidSimulation.ViewRange
         }.ScheduleParallel(_boidQuery, state.Dependency);
         
@@ -45,8 +44,6 @@ public partial struct FindNeighboursJob : IJobEntity
 {
     [ReadOnly] [NativeDisableParallelForRestriction]
     public NativeArray<Boid> Boids;
-    [ReadOnly] [NativeDisableParallelForRestriction]
-    public NativeArray<Entity> BoidEntities;
     public float Radius;
 
     private void Execute(ref DynamicBuffer<AllNeighbours> allNeighbours, ref DynamicBuffer<TeamNeighbours> teamNeighbours, in Boid boid)
@@ -54,7 +51,7 @@ public partial struct FindNeighboursJob : IJobEntity
         teamNeighbours.Clear();
         allNeighbours.Clear();
         
-        for (var i = 0; i < BoidEntities.Length; i++)
+        for (var i = 0; i < Boids.Length; i++)
         {
             var distance = math.distance(Boids[i].Position, boid.Position);
             if (distance < Radius && distance > 0.1f)
