@@ -11,15 +11,15 @@ using static Unity.Entities.SystemAPI;
 [UpdateAfter(typeof(FindNeighbours))]
 public partial struct SimulateBoids : ISystem
 {
-    private EntityQuery _boidQuery;
+    // private EntityQuery _boidQuery;
 
     [BurstCompile]
     public void OnCreate(ref SystemState state)
     {
-        using var queryBuilder = new EntityQueryBuilder(Allocator.Temp)
-            .WithAll<Boid, LocalToWorldTransform>();
-        _boidQuery = state.GetEntityQuery(queryBuilder);
-        state.RequireForUpdate(_boidQuery);
+        // using var queryBuilder = new EntityQueryBuilder(Allocator.Temp)
+        //     .WithAll<Boid, LocalToWorldTransform>();
+        // _boidQuery = state.GetEntityQuery(queryBuilder);
+        // state.RequireForUpdate(_boidQuery);
         state.RequireForUpdate<WorldSettings>();
         state.RequireForUpdate<BoidSimulator>();
     }
@@ -41,36 +41,36 @@ public partial struct SimulateBoids : ISystem
             HalfWorldSize = worldSettings.HalfWorldSize,
             ViewRange = boidSimulation.ViewRange,
             DeltaTime = deltaTime
-        }.ScheduleParallel(_boidQuery, state.Dependency);
+        }.ScheduleParallel(state.Dependency);
 
         jobHandle = new MatchVelocityJob
         {
             MatchVelocityRate = boidSimulation.MatchVelocityRate,
             DeltaTime = deltaTime,
-        }.ScheduleParallel(_boidQuery, jobHandle);
+        }.ScheduleParallel(jobHandle);
 
         jobHandle = new UpdateCoherenceJob
         {
             CoherenceRate = boidSimulation.CoherenceRate,
             DeltaTime = deltaTime,
-        }.ScheduleParallel(_boidQuery, jobHandle);
+        }.ScheduleParallel(jobHandle);
 
         jobHandle = new AvoidOthersJob
         {
             AvoidanceRange = boidSimulation.AvoidanceRange,
             AvoidanceRate = boidSimulation.AvoidanceRate,
             DeltaTime = deltaTime,
-        }.ScheduleParallel(_boidQuery, jobHandle);
+        }.ScheduleParallel(jobHandle);
 
         jobHandle = new UpdateVelocityJob
         {
             DeltaTime = deltaTime
-        }.ScheduleParallel(_boidQuery, jobHandle);
+        }.ScheduleParallel(jobHandle);
 
         jobHandle = new UpdatePositionJob
         {
             DeltaTime = deltaTime
-        }.ScheduleParallel(_boidQuery, jobHandle);
+        }.ScheduleParallel(jobHandle);
         jobHandle.Complete();
     }
 }

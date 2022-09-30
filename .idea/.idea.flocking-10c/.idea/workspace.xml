@@ -7,20 +7,13 @@
     <list default="true" id="d7ae2b3c-3120-417f-985a-2f7cbed62bc8" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.flocking-10c/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.flocking-10c/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/GlobalEntitiesDependencies/GlobalEntitySceneDependency.asset" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/GlobalEntitiesDependencies/GlobalEntitySceneDependency.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Materials/BoidAgentBlue.mat" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Materials/BoidAgentBlue.mat" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Aspects/Aspects.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Aspects/Aspects.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Authoring/BoidAuthoring.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Authoring/BoidAuthoring.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Authoring/BoidSimulatorAuthoring.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Authoring/BoidSimulatorAuthoring.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Authoring/BoidSpawnerAuthoring.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Authoring/BoidSpawnerAuthoring.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Authoring/WorldSettingsAuthoring.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Authoring/WorldSettingsAuthoring.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Components/Boid.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Components/Boid.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Components/BoidSimulator.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Components/BoidSimulator.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Components/BoidSpawner.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Components/BoidSpawner.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/Scripts/Systems/FindNeighbours.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Systems/FindNeighbours.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Materials/BoidAgentGreen.mat" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Materials/BoidAgentGreen.mat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Materials/BoidAgentRed.mat" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Materials/BoidAgentRed.mat" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Assets/Scenes/OptimizedBoids/Entities.unity" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scenes/OptimizedBoids/Entities.unity" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/Systems/SimulateBoids.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Systems/SimulateBoids.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Assets/Scripts/Systems/SpawnBoids.cs" beforeDir="false" afterPath="$PROJECT_DIR$/Assets/Scripts/Systems/SpawnBoids.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectSettings/QualitySettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/QualitySettings.asset" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ProjectSettings/UnityConnectSettings.asset" beforeDir="false" afterPath="$PROJECT_DIR$/ProjectSettings/UnityConnectSettings.asset" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Packages/manifest.json" beforeDir="false" afterPath="$PROJECT_DIR$/Packages/manifest.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Packages/packages-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Packages/packages-lock.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -121,7 +114,7 @@
       <workItem from="1664324379047" duration="11583000" />
       <workItem from="1664374788444" duration="28158000" />
       <workItem from="1664494217541" duration="7129000" />
-      <workItem from="1664511208837" duration="2634000" />
+      <workItem from="1664511208837" duration="3498000" />
     </task>
     <servers />
   </component>
