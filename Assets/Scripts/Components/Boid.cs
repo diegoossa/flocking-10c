@@ -14,10 +14,13 @@ public struct Team : IComponentData
     public float Drag;
 }
 
-public struct Neighbours : IBufferElementData
+public struct AllNeighbours : IBufferElementData
 {
-    public Entity Entity;
+    public float3 Position;
+}
+
+public struct TeamNeighbours : IBufferElementData
+{
     public float3 Velocity;
     public float3 Position;
-    public int TeamId;
 }

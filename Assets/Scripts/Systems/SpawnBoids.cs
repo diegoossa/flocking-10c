@@ -10,7 +10,7 @@ using Random = Unity.Mathematics.Random;
 [BurstCompile]
 public partial struct SpawnBoids : ISystem
 {
-    private static readonly uint[] BoidCounts = {64, 256, 1024, 4096};
+    private static readonly uint[] BoidCounts = {64, 256, 1024, 4096, 8192, 16384};
     private uint _currentCount;
 
     public void OnCreate(ref SystemState state)

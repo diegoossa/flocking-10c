@@ -2,7 +2,6 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
 
 [RequireMatchingQueriesForUpdate]
 [BurstCompile]
@@ -50,21 +49,28 @@ public partial struct FindNeighboursJob : IJobEntity
     public NativeArray<Entity> BoidEntities;
     public float Radius;
 
-    private void Execute(ref DynamicBuffer<Neighbours> neighbours, in LocalToWorldTransform localToWorldTransform)
+    private void Execute(ref DynamicBuffer<AllNeighbours> allNeighbours, ref DynamicBuffer<TeamNeighbours> teamNeighbours, in Boid boid)
     {
-        neighbours.Clear();
+        teamNeighbours.Clear();
+        allNeighbours.Clear();
+        
         for (var i = 0; i < BoidEntities.Length; i++)
         {
-            var distance = math.distance(Boids[i].Position, localToWorldTransform.Value.Position);
-            if (distance < Radius && distance > 0)
+            var distance = math.distance(Boids[i].Position, boid.Position);
+            if (distance < Radius && distance > 0.1f)
             {
-                neighbours.Add(new Neighbours
+                allNeighbours.Add(new AllNeighbours
                 {
-                    Entity = BoidEntities[i], 
                     Position = Boids[i].Position, 
-                    Velocity = Boids[i].Velocity,
-                    TeamId = Boids[i].TeamId
                 });
+                if (Boids[i].TeamId == boid.TeamId)
+                {
+                    teamNeighbours.Add(new TeamNeighbours
+                    {
+                        Position = Boids[i].Position, 
+                        Velocity = Boids[i].Velocity,
+                    });
+                }
             }
         }
     }

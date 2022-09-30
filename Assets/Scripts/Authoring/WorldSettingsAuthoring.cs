@@ -4,9 +4,9 @@ using UnityEngine;
 public class WorldSettingsAuthoring : MonoBehaviour
 {
     [Header("Boid World Settings")] 
-    public float InitialVelocity = 2.0f;
-    public float BoidDensity = 4f;
-    public int RoundWorldSizeToMultiplesOf = 5;
+    public float initialVelocity = 2.0f;
+    public float boidDensity = 4f;
+    public int roundWorldSizeToMultiplesOf = 5;
 }
 
 public class WorldSettingsAuthoringBaker : Baker<WorldSettingsAuthoring>
@@ -15,9 +15,9 @@ public class WorldSettingsAuthoringBaker : Baker<WorldSettingsAuthoring>
     {
         AddComponent(new WorldSettings
         {
-            BoidDensity = authoring.BoidDensity,
-            RoundWorldSizeToMultiplesOf = authoring.RoundWorldSizeToMultiplesOf,
-            InitialVelocity = authoring.InitialVelocity
+            BoidDensity = authoring.boidDensity,
+            RoundWorldSizeToMultiplesOf = authoring.roundWorldSizeToMultiplesOf,
+            InitialVelocity = authoring.initialVelocity
         });
     }
 }

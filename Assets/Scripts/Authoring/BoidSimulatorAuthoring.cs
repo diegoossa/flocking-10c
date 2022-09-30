@@ -4,7 +4,6 @@ using UnityEngine;
 public class BoidSimulatorAuthoring : MonoBehaviour
 {
     [Header("Simulation Settings")] 
-    public float initialVelocity = 2.0f;
     public float matchVelocityRate = 1.0f;
     public float avoidanceRange = 2.0f;
     public float avoidanceRate = 5.0f;
@@ -18,7 +17,6 @@ public class BoidSimulatorAuthoringBaker : Baker<BoidSimulatorAuthoring>
     {
         AddComponent(new BoidSimulator
         {
-            InitialVelocity = authoring.initialVelocity,
             MatchVelocityRate = authoring.matchVelocityRate,
             AvoidanceRange = authoring.avoidanceRange,
             AvoidanceRate = authoring.avoidanceRate,

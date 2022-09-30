@@ -2,7 +2,6 @@ using Unity.Entities;
 
 public struct BoidSpawner : IComponentData
 {
-    public float InitialVelocity;
 }
 
 [InternalBufferCapacity(3)]

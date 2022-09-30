@@ -13,7 +13,6 @@ public struct BoidAgentSettings
 
 public class BoidSpawnerAuthoring : MonoBehaviour
 {
-    [Header("Boid Agents")]
     public BoidAgentSettings[] boidAgents;
 }
 
