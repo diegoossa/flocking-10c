@@ -10,7 +10,7 @@ public class BoidAuthoringBaker : Baker<BoidAuthoring>
     public override void Bake(BoidAuthoring authoring)
     {
         AddComponent<Boid>();
-        AddBuffer<AllNeighbours>();
-        AddBuffer<TeamNeighbours>();
+        AddBuffer<AllNeighbourData>();
+        AddBuffer<TeamNeighbourData>();
     }
 }

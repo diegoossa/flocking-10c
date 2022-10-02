@@ -2,11 +2,11 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.Transforms;
-using UnityEngine;
 using static Unity.Entities.SystemAPI;
 
-[RequireMatchingQueriesForUpdate]
+/// <summary>
+/// Perform the Simulation of the Boids
+/// </summary>
 [BurstCompile]
 [UpdateAfter(typeof(FindNeighbours))]
 public partial struct SimulateBoids : ISystem
@@ -15,7 +15,7 @@ public partial struct SimulateBoids : ISystem
     public void OnCreate(ref SystemState state)
     {
         state.RequireForUpdate<WorldSettings>();
-        state.RequireForUpdate<BoidSimulionSettings>();
+        state.RequireForUpdate<BoidSimulationSettings>();
     }
 
     public void OnDestroy(ref SystemState state)
@@ -26,9 +26,9 @@ public partial struct SimulateBoids : ISystem
     public void OnUpdate(ref SystemState state)
     {
         var worldSettings = GetSingleton<WorldSettings>();
-        var simulationSettings = GetSingleton<BoidSimulionSettings>();
+        var simulationSettings = GetSingleton<BoidSimulationSettings>();
 
-        var deltaTime = SystemAPI.Time.DeltaTime;
+        var deltaTime = Time.DeltaTime;
 
         var jobHandle = new AvoidInsideBoundsOfCubeJob
         {
@@ -69,6 +69,9 @@ public partial struct SimulateBoids : ISystem
     }
 }
 
+/// <summary>
+/// Move inside the World Bounds
+/// </summary>
 [BurstCompile]
 public partial struct AvoidInsideBoundsOfCubeJob : IJobEntity
 {
@@ -88,6 +91,9 @@ public partial struct AvoidInsideBoundsOfCubeJob : IJobEntity
     }
 }
 
+/// <summary>
+/// Match velocity of the neighbour boids of the same team
+/// </summary>
 [BurstCompile]
 public partial struct MatchVelocityJob : IJobEntity
 {
@@ -110,6 +116,9 @@ public partial struct MatchVelocityJob : IJobEntity
     }
 }
 
+/// <summary>
+/// Stay close to the neighbour boids of the same team
+/// </summary>
 [BurstCompile]
 public partial struct UpdateCoherenceJob : IJobEntity
 {
@@ -132,6 +141,9 @@ public partial struct UpdateCoherenceJob : IJobEntity
     }
 }
 
+/// <summary>
+/// Avoid other boids
+/// </summary>
 [BurstCompile]
 public partial struct AvoidOthersJob : IJobEntity
 {
@@ -161,6 +173,9 @@ public partial struct AvoidOthersJob : IJobEntity
     }
 }
 
+/// <summary>
+/// Update velocity based on the Team settings
+/// </summary>
 [BurstCompile]
 public partial struct UpdateVelocityJob : IJobEntity
 {
@@ -175,6 +190,9 @@ public partial struct UpdateVelocityJob : IJobEntity
     }
 }
 
+/// <summary>
+/// Update position of the boids
+/// </summary>
 [BurstCompile]
 public partial struct UpdatePositionJob : IJobEntity
 {

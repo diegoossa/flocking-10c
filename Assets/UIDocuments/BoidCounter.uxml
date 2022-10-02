@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UIDocuments/styles.uss?fileID=7433441132597879392&amp;guid=ab9d0cb94fabea645bb310dbc497c523&amp;type=3#styles" />
+    <ui:VisualElement name="container" style="background-color: rgba(0, 0, 0, 0); margin-left: 20px; margin-right: 20px; margin-top: 20px; margin-bottom: 20px; flex-direction: row;">
+        <ui:Label tabindex="-1" text="BOID COUNT:" display-tooltip-when-elided="true" name="boid-counter-label" class="counter" style="margin-left: 25px;" />
+        <ui:Label tabindex="-1" text="0" display-tooltip-when-elided="true" name="boid-counter" class="counter" />
+    </ui:VisualElement>
+</ui:UXML>

@@ -15,11 +15,13 @@ public readonly partial struct BoidAspect : IAspect
     private readonly RefRW<Boid> _boid;
     private readonly RefRO<Team> _team;
     public readonly TransformAspect Transform;
-    public readonly DynamicBuffer<AllNeighbours> AllNeighbours;
-    public readonly DynamicBuffer<TeamNeighbours> TeamNeighbours;
+    public readonly DynamicBuffer<AllNeighbourData> AllNeighbours;
+    public readonly DynamicBuffer<TeamNeighbourData> TeamNeighbours;
 
     public Team Team => _team.ValueRO;
 
+    public Boid Boid => _boid.ValueRO;
+    
     public float3 Velocity
     {
         get => _boid.ValueRO.Velocity;
@@ -28,7 +30,7 @@ public readonly partial struct BoidAspect : IAspect
     
     public float3 Position
     {
-        get => Transform.Position;
-        set => Transform.Position = value;
+        get => _boid.ValueRO.Position;
+        set => _boid.ValueRW.Position = value;
     }
 }

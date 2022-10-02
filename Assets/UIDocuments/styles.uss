@@ -1,0 +1,6 @@
+.counter {
+    -unity-font-definition: url('project://database/Assets/Fonts/Kanit-Bold%20SDF.asset?fileID=11400000&guid=efc12bed36439ed4a86ad16bbc496a36&type=2#Kanit-Bold SDF');
+    font-size: 30px;
+    color: rgb(202, 202, 202);
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.59);
+}

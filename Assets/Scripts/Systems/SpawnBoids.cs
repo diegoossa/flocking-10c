@@ -7,10 +7,13 @@ using Unity.Transforms;
 using static Unity.Entities.SystemAPI;
 using Random = Unity.Mathematics.Random;
 
+/// <summary>
+/// System to Spawn Boids
+/// </summary>
 [BurstCompile]
 public partial struct SpawnBoids : ISystem
 {
-    private static readonly uint[] BoidCounts = {64, 256, 1024, 4096, 8192, 16384};
+    private static readonly uint[] BoidCounts = {64, 256, 1024, 4096, 8192, 16384, 32768, 65536};
     private bool _initialSpawn;
 
     public void OnCreate(ref SystemState state)
@@ -22,7 +25,6 @@ public partial struct SpawnBoids : ISystem
     {
     }
 
-    [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
         // Reset setup when number keys are pressed
@@ -30,6 +32,7 @@ public partial struct SpawnBoids : ISystem
         {
             if (Input.GetKeyDown(KeyCode.Alpha1 + i))
             {
+                BoidCounter.Instance.SetCounter(BoidCounts[i]);
                 ResetSetup(ref state, BoidCounts[i]);
                 break;
             }
@@ -38,11 +41,17 @@ public partial struct SpawnBoids : ISystem
         // Perform an initial spawn
         if (!_initialSpawn)
         {
+            BoidCounter.Instance.SetCounter(BoidCounts[0]);
             ResetSetup(ref state, BoidCounts[0]);
             _initialSpawn = true;
         }
     }
 
+    /// <summary>
+    /// Destroy all boids and spawn new boids
+    /// </summary>
+    /// <param name="state">Ref of the ISystem State</param>
+    /// <param name="boidCount">Number of boids to instantiate</param>
     [BurstCompile]
     private void ResetSetup(ref SystemState state, uint boidCount)
     {

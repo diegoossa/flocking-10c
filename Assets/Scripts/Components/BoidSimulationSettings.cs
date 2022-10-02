@@ -1,9 +1,10 @@
 using Unity.Entities;
-using Unity.Mathematics;
 
-public struct BoidSimulionSettings : IComponentData
+/// <summary>
+/// Settings for the simulation
+/// </summary>
+public struct BoidSimulationSettings : IComponentData
 {
-    // Simulation settings
     public float MatchVelocityRate;
     public float AvoidanceRange;
     public float AvoidanceRate;
