@@ -13,7 +13,8 @@ public class WorldSettingsAuthoringBaker : Baker<WorldSettingsAuthoring>
 {
     public override void Bake(WorldSettingsAuthoring authoring)
     {
-        AddComponent(new WorldSettings
+        Entity entity = GetEntity(authoring.gameObject, TransformUsageFlags.None);
+        AddComponent(entity, new WorldSettings
         {
             BoidDensity = authoring.boidDensity,
             RoundWorldSizeToMultiplesOf = authoring.roundWorldSizeToMultiplesOf,

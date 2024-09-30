@@ -19,14 +19,11 @@ public partial struct FindNeighbours : ISystem
 
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<BoidSimulationSettings>();
         using var queryBuilder = new EntityQueryBuilder(Allocator.TempJob)
             .WithAll<Boid>();
         _boidQuery = state.GetEntityQuery(queryBuilder);
         state.RequireForUpdate(_boidQuery);
-    }
-
-    public void OnDestroy(ref SystemState state)
-    {
     }
 
     public void OnUpdate(ref SystemState state)
@@ -35,7 +32,7 @@ public partial struct FindNeighbours : ISystem
         var boids = _boidQuery.ToComponentDataArray<Boid>(Allocator.TempJob);
 
         // Get the boids inside each Quadrant
-        var quadrantMultiHashMap = new NativeMultiHashMap<int, Boid>(boids.Length, Allocator.TempJob);
+        var quadrantMultiHashMap = new NativeParallelMultiHashMap<int, Boid>(boids.Length, Allocator.TempJob);
         var setQuadrantDataHashMapJob = new SetQuadrantDataHashMapJob
         {
             QuadrantMultiHashMap = quadrantMultiHashMap.AsParallelWriter()
@@ -47,7 +44,7 @@ public partial struct FindNeighbours : ISystem
         {
             QuadrantMultiHashMap = quadrantMultiHashMap,
             Radius = boidSimulation.ViewRange
-        }.ScheduleParallel(_boidQuery, jobHandle);
+        }.ScheduleParallel(jobHandle);
 
         jobHandle.Complete();
 
@@ -66,19 +63,19 @@ public partial struct FindNeighbours : ISystem
 [BurstCompile]
 public partial struct SetQuadrantDataHashMapJob : IJobEntity
 {
-    public NativeMultiHashMap<int, Boid>.ParallelWriter QuadrantMultiHashMap;
+    public NativeParallelMultiHashMap<int, Boid>.ParallelWriter QuadrantMultiHashMap;
 
-    private void Execute(in BoidAspect boid)
+    private void Execute(in Boid boid)
     {
         var hashKey = FindNeighbours.GetHashMapKey(boid.Position);
-        QuadrantMultiHashMap.Add(hashKey, boid.Boid);
+        QuadrantMultiHashMap.Add(hashKey, boid);
     }
 }
 
 [BurstCompile]
 public partial struct FindNeighboursInQuadrantJob : IJobEntity
 {
-    [ReadOnly] public NativeMultiHashMap<int, Boid> QuadrantMultiHashMap;
+    [ReadOnly] public NativeParallelMultiHashMap<int, Boid> QuadrantMultiHashMap;
     public float Radius;
 
     private void Execute(ref DynamicBuffer<AllNeighbourData> allNeighbours, ref DynamicBuffer<TeamNeighbourData> teamNeighbours, in Boid boid)

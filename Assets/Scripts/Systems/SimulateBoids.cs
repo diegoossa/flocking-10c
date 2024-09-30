@@ -2,6 +2,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 using static Unity.Entities.SystemAPI;
 
 /// <summary>
@@ -16,10 +17,6 @@ public partial struct SimulateBoids : ISystem
     {
         state.RequireForUpdate<WorldSettings>();
         state.RequireForUpdate<BoidSimulationSettings>();
-    }
-
-    public void OnDestroy(ref SystemState state)
-    {
     }
 
     [BurstCompile]
@@ -79,7 +76,7 @@ public partial struct AvoidInsideBoundsOfCubeJob : IJobEntity
     public float ViewRange;
     public float DeltaTime;
 
-    private void Execute(ref BoidAspect boid)
+    private void Execute(ref Boid boid)
     {
         boid.Velocity -= new float3(
             math.max(math.abs(boid.Position.x) - HalfWorldSize.x + ViewRange, 0) *
@@ -100,18 +97,18 @@ public partial struct MatchVelocityJob : IJobEntity
     public float MatchVelocityRate;
     public float DeltaTime;
 
-    private void Execute(ref BoidAspect boid)
+    private void Execute(ref Boid boid, in DynamicBuffer<TeamNeighbourData> teamData)
     {
-        if (boid.TeamNeighbours.Length <= 0)
+        if (teamData.Length <= 0)
             return;
 
         var velocity = float3.zero;
-        for (var i = 0; i < boid.TeamNeighbours.Length; ++i)
+        for (var i = 0; i < teamData.Length; ++i)
         {
-            velocity += boid.TeamNeighbours[i].Velocity;
+            velocity += teamData[i].Velocity;
         }
 
-        velocity /= boid.TeamNeighbours.Length;
+        velocity /= teamData.Length;
         boid.Velocity += (velocity - boid.Velocity) * (MatchVelocityRate * DeltaTime);
     }
 }
@@ -125,18 +122,18 @@ public partial struct UpdateCoherenceJob : IJobEntity
     public float CoherenceRate;
     public float DeltaTime;
 
-    private void Execute(ref BoidAspect boid)
+    private void Execute(ref Boid boid, in DynamicBuffer<TeamNeighbourData> teamData)
     {
-        if (boid.TeamNeighbours.Length <= 0)
+        if (teamData.Length <= 0)
             return;
 
-        var center = boid.TeamNeighbours[0].Position;
-        for (var i = 1; i < boid.TeamNeighbours.Length; ++i)
+        var center = teamData[0].Position;
+        for (var i = 1; i < teamData.Length; ++i)
         {
-            center += boid.TeamNeighbours[i].Position;
+            center += teamData[i].Position;
         }
 
-        center *= 1.0f / boid.TeamNeighbours.Length;
+        center *= 1.0f / teamData.Length;
         boid.Velocity += (center - boid.Position) * CoherenceRate * DeltaTime;
     }
 }
@@ -151,17 +148,17 @@ public partial struct AvoidOthersJob : IJobEntity
     [ReadOnly] public float AvoidanceRate;
     [ReadOnly] public float DeltaTime;
 
-    private void Execute(ref BoidAspect boid)
+    private void Execute(ref Boid boid, in DynamicBuffer<AllNeighbourData> allNeighbours)
     {
-        if (boid.AllNeighbours.Length <= 0)
+        if (allNeighbours.Length <= 0)
             return;
 
         var myPosition = boid.Position;
         var minDistSqr = AvoidanceRange * AvoidanceRange;
         var step = float3.zero;
-        for (var i = 0; i < boid.AllNeighbours.Length; ++i)
+        for (var i = 0; i < allNeighbours.Length; ++i)
         {
-            var delta = myPosition - boid.AllNeighbours[i].Position;
+            var delta = myPosition - allNeighbours[i].Position;
             var deltaSqr = math.lengthsq(delta);
             if (deltaSqr > 0 && deltaSqr < minDistSqr)
             {
@@ -181,11 +178,11 @@ public partial struct UpdateVelocityJob : IJobEntity
 {
     public float DeltaTime;
 
-    private void Execute(ref BoidAspect boid)
+    private void Execute(ref Boid boid, in Team team)
     {
         var velocity = boid.Velocity;
-        velocity += math.normalize(velocity) * (boid.Team.Acceleration * DeltaTime);
-        velocity *= 1.0f - 30.0f * boid.Team.Drag * DeltaTime;
+        velocity += math.normalize(velocity) * (team.Acceleration * DeltaTime);
+        velocity *= 1.0f - 30.0f * team.Drag * DeltaTime;
         boid.Velocity = velocity;
     }
 }
@@ -197,10 +194,10 @@ public partial struct UpdateVelocityJob : IJobEntity
 public partial struct UpdatePositionJob : IJobEntity
 {
     public float DeltaTime;
-    private void Execute(ref BoidAspect boid)
+    private void Execute(ref Boid boid, ref LocalTransform localTransform)
     {
         boid.Position += boid.Velocity * DeltaTime;
-        boid.Transform.Position = boid.Position;
-        boid.Transform.LookAt(boid.Position + boid.Velocity);
+        boid.Position = boid.Position;
+        localTransform.Rotation = quaternion.LookRotationSafe(boid.Position + boid.Velocity, math.up());
     }
 }

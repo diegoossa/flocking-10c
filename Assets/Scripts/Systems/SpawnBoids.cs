@@ -18,11 +18,8 @@ public partial struct SpawnBoids : ISystem
 
     public void OnCreate(ref SystemState state)
     {
+        state.RequireForUpdate<WorldSettings>();
         state.RequireForUpdate<BoidSpawner>();
-    }
-
-    public void OnDestroy(ref SystemState state)
-    {
     }
 
     public void OnUpdate(ref SystemState state)
@@ -64,6 +61,7 @@ public partial struct SpawnBoids : ISystem
         {
             EntityCommandBuffer = commandBufferParallelWriter
         };
+        
         var jobHandle = destroyBoidsJob.ScheduleParallel(state.Dependency);
 
         // Decide world size based on boid count and density
@@ -98,9 +96,9 @@ public partial struct DestroyBoidsJob : IJobEntity
 {
     public EntityCommandBuffer.ParallelWriter EntityCommandBuffer;
 
-    private void Execute([EntityInQueryIndex] int index, in BoidAspect boid)
+    private void Execute([EntityIndexInQuery] int index, in Boid boid, Entity entity)
     {
-        EntityCommandBuffer.DestroyEntity(index, boid.Self);
+        EntityCommandBuffer.DestroyEntity(index, entity);
     }
 }
 
@@ -115,7 +113,7 @@ public partial struct CreateBoidsJob : IJobEntity
     [ReadOnly] public float WorldSize;
     [ReadOnly] public float InitialVelocity;
 
-    private void Execute([EntityInQueryIndex] int index, in BoidSpawnerAspect boidSpawner)
+    private void Execute([EntityIndexInQuery] int index, in BoidSpawner boidSpawner, DynamicBuffer<BoidAgentData> boidAgentBuffer)
     {
         var random = new Random((uint) index + 1);
 
@@ -125,8 +123,8 @@ public partial struct CreateBoidsJob : IJobEntity
         for (var i = 0; i < BoidCount; i++)
         {
             // Spawn random boids
-            var randomIndex = random.NextInt(0, boidSpawner.BoidAgentBuffer.Length);
-            var boid = EntityCommandBuffer.Instantiate(index, boidSpawner.BoidAgentBuffer[randomIndex].BoidAgentEntity);
+            var randomIndex = random.NextInt(0, boidAgentBuffer.Length);
+            var boid = EntityCommandBuffer.Instantiate(index, boidAgentBuffer[randomIndex].BoidAgentEntity);
             var position = new float3(
                 random.NextFloat(-halfSpawnRange.x, halfSpawnRange.x),
                 random.NextFloat(-halfSpawnRange.y, halfSpawnRange.y),
@@ -135,15 +133,15 @@ public partial struct CreateBoidsJob : IJobEntity
             {
                 Position = position,
                 Velocity = RandomUnitFloat3(ref random) * InitialVelocity,
-                TeamId = boidSpawner.BoidAgentBuffer[randomIndex].TeamId
+                TeamId = boidAgentBuffer[randomIndex].TeamId
             });
             EntityCommandBuffer.AddComponent(index, boid, new Team
             {
-                Acceleration = boidSpawner.BoidAgentBuffer[randomIndex].Acceleration,
-                Drag = boidSpawner.BoidAgentBuffer[randomIndex].Drag
+                Acceleration = boidAgentBuffer[randomIndex].Acceleration,
+                Drag = boidAgentBuffer[randomIndex].Drag
             });
             EntityCommandBuffer.SetComponent(index, boid,
-                new LocalToWorldTransform {Value = UniformScaleTransform.FromPosition(position)});
+                new LocalTransform { Position = position });
         }
     }
 
